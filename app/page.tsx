@@ -11,7 +11,18 @@ const MARQUEE_TAGS = [
   "Vercel Deploy",
 ];
 
-const PROJECTS = [
+type ProjectCard = {
+  thumbClass: string;
+  icon: string;
+  badge: string;
+  title: string;
+  desc: string;
+  pills: string[];
+  repoUrl?: string;
+  repoLabel?: string;
+};
+
+const PROJECTS: ProjectCard[] = [
   {
     thumbClass: "proj-thumb-1",
     icon: "🛒",
@@ -30,11 +41,13 @@ const PROJECTS = [
   },
   {
     thumbClass: "proj-thumb-3",
-    icon: "⚡",
-    badge: "SaaS",
-    title: "CRM & Pipeline Tool",
-    desc: "Customer management SaaS with email automation, deal pipelines, and team collaboration features.",
-    pills: ["Next.js", "PostgreSQL", "Resend", "Prisma"],
+    icon: "💻",
+    badge: "Portfolio",
+    title: "Full Stack Web Development",
+    desc: "This portfolio — Next.js App Router, TypeScript, and Tailwind CSS with a responsive layout, project showcase, and contact flows. Source on GitHub.",
+    pills: ["Next.js", "TypeScript", "Tailwind CSS", "GitHub"],
+    repoUrl: "https://github.com/adeelfaisal701/Portfolio",
+    repoLabel: "View on GitHub",
   },
 ];
 
@@ -221,6 +234,16 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
+                {p.repoUrl && p.repoLabel ? (
+                  <a
+                    href={p.repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="proj-footer-link"
+                  >
+                    {p.repoLabel} →
+                  </a>
+                ) : null}
               </div>
             </article>
           ))}
