@@ -383,7 +383,12 @@ export default function Home() {
           >
             GitHub
           </a>
-          <a className="footer-link" href="#" title="Add your LinkedIn URL">
+          <a
+            className="footer-link"
+            href="https://www.linkedin.com/in/faisal-adeel-0246ab238"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             LinkedIn
           </a>
           <a className="footer-link" href="#" title="Add your Twitter / X URL">
