@@ -1,63 +1,72 @@
+const WA_LINK = "https://wa.me/923091407288";
+
 const MARQUEE_TAGS = [
   "React",
   "Next.js",
   "Python",
   "MongoDB",
   "FastAPI",
-  "AI Development",
+  "AI Dev",
   "Cursor AI",
-  "Full-Stack",
+  "Stripe",
+  "Tailwind",
+  "Vercel",
+  "TypeScript",
   "REST APIs",
-  "Vercel Deploy",
 ];
 
-type ProjectCard = {
-  thumbClass: string;
-  icon: string;
-  badge: string;
+type ShowcaseProject = {
+  imgClass: string;
+  emoji: string;
+  tag: string;
   title: string;
+  impact: string;
   desc: string;
   pills: string[];
-  repoUrl?: string;
-  repoLabel?: string;
+  liveUrl: string;
+  ghUrl: string;
+  glow?: string;
 };
 
-const PROJECTS: ProjectCard[] = [
+const PROJECTS: ShowcaseProject[] = [
   {
-    thumbClass: "proj-thumb-1",
-    icon: "🛒",
-    badge: "E-Commerce",
+    imgClass: "pcard-img-1",
+    emoji: "🛒",
+    tag: "E-Commerce",
     title: "Multi-Vendor Store",
-    desc: "Full e-commerce platform with Stripe payments, real-time inventory, and admin analytics dashboard.",
+    impact: "Reduced checkout time by 40%",
+    desc: "Full store with Stripe payments, real-time inventory, and admin analytics dashboard.",
     pills: ["Next.js", "Stripe", "MongoDB", "Tailwind"],
+    liveUrl:
+      "mailto:adeelfaisal701@gmail.com?subject=Live%20demo%20request%20%E2%80%94%20Multi-Vendor%20Store",
+    ghUrl: "https://github.com/adeelfaisal701",
   },
   {
-    thumbClass: "proj-thumb-2",
-    icon: "🤖",
-    badge: "AI Powered",
-    title: "AI Analytics Platform",
-    desc: "Business dashboard with GPT-4 powered insights, auto-generated reports, and predictive analytics.",
+    imgClass: "pcard-img-2",
+    emoji: "🤖",
+    tag: "AI Powered",
+    title: "AI Analytics Dashboard",
+    impact: "Saved 6hrs/week of manual reporting",
+    desc: "GPT-4 powered insights, auto-generated reports, and predictive analytics for businesses.",
     pills: ["Python", "FastAPI", "OpenAI", "React"],
+    liveUrl:
+      "mailto:adeelfaisal701@gmail.com?subject=Live%20demo%20request%20%E2%80%94%20AI%20Analytics",
+    ghUrl: "https://github.com/adeelfaisal701",
+    glow: "rgba(74,222,128,0.15)",
   },
   {
-    thumbClass: "proj-thumb-3",
-    icon: "💻",
-    badge: "Portfolio",
+    imgClass: "pcard-img-3",
+    emoji: "💻",
+    tag: "Portfolio",
     title: "Full Stack Web Development",
-    desc: "This portfolio — Next.js App Router, TypeScript, and Tailwind CSS with a responsive layout, project showcase, and contact flows. Source on GitHub.",
+    impact: "Production-ready personal brand site",
+    desc: "This portfolio — Next.js App Router, TypeScript, and Tailwind CSS with responsive layout and contact flows.",
     pills: ["Next.js", "TypeScript", "Tailwind CSS", "GitHub"],
-    repoUrl: "https://github.com/adeelfaisal701/Portfolio",
-    repoLabel: "View on GitHub",
+    liveUrl:
+      "mailto:adeelfaisal701@gmail.com?subject=Portfolio%20%E2%80%94%20live%20walkthrough",
+    ghUrl: "https://github.com/adeelfaisal701/Portfolio",
+    glow: "rgba(192,132,252,0.15)",
   },
-];
-
-const SKILL_BOXES = [
-  { icon: "⚛️", name: "React / Next.js", level: "Advanced" },
-  { icon: "🐍", name: "Python / FastAPI", level: "Advanced" },
-  { icon: "🍃", name: "MongoDB", level: "Advanced" },
-  { icon: "☁️", name: "Vercel / Cloud", level: "Proficient" },
-  { icon: "🤖", name: "AI / Cursor AI", level: "Advanced" },
-  { icon: "🎨", name: "Tailwind CSS", level: "Advanced" },
 ];
 
 const HERO_SKILLS = [
@@ -67,16 +76,48 @@ const HERO_SKILLS = [
   { name: "AI Integration", pct: 78 },
 ];
 
+const SKILL_BOXES = [
+  { icon: "⚛️", name: "React / Next.js", level: "Advanced · 90%", pct: 90 },
+  { icon: "🐍", name: "Python / FastAPI", level: "Advanced · 82%", pct: 82 },
+  { icon: "🍃", name: "MongoDB", level: "Advanced · 85%", pct: 85 },
+  { icon: "☁️", name: "Vercel / Cloud", level: "Proficient · 80%", pct: 80 },
+  { icon: "🤖", name: "AI / Cursor AI", level: "Advanced · 78%", pct: 78 },
+  { icon: "🎨", name: "Tailwind CSS", level: "Advanced · 88%", pct: 88 },
+];
+
+const EXPERIENCE = [
+  {
+    yr: "2025–Now",
+    role: "Web Developer",
+    co: "Hangport · Lahore, Pakistan",
+  },
+  { yr: "2024", role: "Freelance Full-Stack Dev", co: "Independent · Remote" },
+  {
+    yr: "2023–24",
+    role: "Web Developer",
+    co: "Startup & Agency Projects",
+  },
+  {
+    yr: "2022–23",
+    role: "Frontend Developer",
+    co: "Learning & Freelance",
+  },
+];
+
 export default function Home() {
   const marqueeLoop = [...MARQUEE_TAGS, ...MARQUEE_TAGS];
 
   return (
-    <div className="portfolio-shell">
+    <div className="landing-v3">
+      <div className="orb orb1" aria-hidden />
+      <div className="orb orb2" aria-hidden />
+      <div className="orb orb3" aria-hidden />
+
       <nav className="nav" aria-label="Primary">
         <div className="logo">
           <span>FA</span>.dev
         </div>
-        <div className="nav-right">
+        <div className="nav-links">
           <a href="#work" className="nav-link">
             Work
           </a>
@@ -88,7 +129,7 @@ export default function Home() {
           </a>
           <a
             href="mailto:adeelfaisal701@gmail.com?subject=Hire%20me%20%E2%80%94%20Portfolio"
-            className="nav-btn"
+            className="hire-btn"
           >
             Hire Me ↗
           </a>
@@ -97,40 +138,38 @@ export default function Home() {
 
       <section className="hero">
         <div>
-          <div className="avail">
+          <div className="avail-badge">
             <span className="avail-dot" aria-hidden />
-            <span className="avail-text">Open to work</span>
+            <span className="avail-text">Available for freelance</span>
           </div>
-          <p className="hero-eyebrow">Full-Stack Web Developer · Lahore, PK</p>
+          <p className="hero-tag">Full-Stack Developer · Lahore, Pakistan</p>
           <h1 className="hero-h1">
-            <span className="line1">Faisal</span>
-            <span className="line2">Adeel</span>
+            <span className="h1-white">I build fast,</span>
+            <span className="h1-grad">modern &amp; scalable</span>
+            <span className="h1-white">web apps.</span>
           </h1>
-          <p className="hero-desc">
-            I build <b>fast, modern web apps</b> that clients love — from SaaS
-            platforms to AI-powered tools. Clean code, sharp UI, shipped on time.
+          <p className="hero-value">
+            For businesses that want <strong>results, not just code</strong> — I
+            ship SaaS platforms, AI-powered tools, and e-commerce solutions that
+            actually convert.
           </p>
-          <div className="hero-actions">
+          <div className="hero-cta-row">
             <a
               href="https://github.com/adeelfaisal701"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary"
-              aria-label="View my work on GitHub (opens in new tab)"
+              className="cta-main"
             >
               View My Work →
             </a>
-            <a
-              href="mailto:adeelfaisal701@gmail.com?subject=CV%20request"
-              className="btn-ghost"
-            >
-              Download CV
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="cta-whatsapp">
+              <span className="wa-icon">💬</span> WhatsApp Me
             </a>
           </div>
-          <div className="hero-stats">
+          <div className="stats-row">
             <div className="stat">
               <span className="stat-n">15+</span>
-              <span className="stat-l">Projects Done</span>
+              <span className="stat-l">Projects</span>
             </div>
             <div className="stat">
               <span className="stat-n">2+</span>
@@ -138,59 +177,54 @@ export default function Home() {
             </div>
             <div className="stat">
               <span className="stat-n">100%</span>
-              <span className="stat-l">Client Satisfaction</span>
+              <span className="stat-l">On Time</span>
             </div>
           </div>
         </div>
 
-        <aside className="hero-card" aria-label="Profile card">
-          <div className="hc-top">
-            <div className="avatar">FA</div>
+        <aside className="hcard" aria-label="Profile card">
+          <div className="hcard-top">
+            <div className="hcard-av">FA</div>
             <div>
-              <div className="hc-name">Faisal Adeel</div>
-              <div className="hc-role">Full-Stack Developer</div>
+              <div className="hcard-name">Faisal Adeel</div>
+              <div className="hcard-role">Full-Stack Developer</div>
             </div>
-            <div className="hc-online">Online</div>
+            <div className="hcard-status">Online</div>
           </div>
-          <div className="hc-section">
-            <div className="hc-label">Expertise</div>
-            <div className="skill-row">
-              {HERO_SKILLS.map((s) => (
-                <div key={s.name} className="skill-item">
-                  <span className="skill-name-s">{s.name}</span>
-                  <div className="skill-bar-bg">
-                    <div
-                      className="skill-bar-fill"
-                      style={{ width: `${s.pct}%` }}
-                    />
-                  </div>
-                  <span className="skill-pct">{s.pct}%</span>
+          <div className="hcard-section">
+            <div className="hcard-label">Expertise Level</div>
+            {HERO_SKILLS.map((s) => (
+              <div key={s.name} className="sbar">
+                <span className="sbar-name">{s.name}</span>
+                <div className="sbar-track">
+                  <div className="sbar-fill" style={{ width: `${s.pct}%` }} />
                 </div>
-              ))}
-            </div>
+                <span className="sbar-pct">{s.pct}%</span>
+              </div>
+            ))}
           </div>
-          <div className="hc-section">
-            <div className="hc-label">Contact</div>
-            <div className="hc-contact">
-              <div className="contact-row">
-                <div className="contact-icon" aria-hidden>
+          <div className="hcard-section" style={{ marginBottom: 0 }}>
+            <div className="hcard-label">Contact</div>
+            <div className="contact-items">
+              <div className="ci">
+                <div className="ci-icon" aria-hidden>
                   ✉
                 </div>
-                <a href="mailto:adeelfaisal701@gmail.com">
-                  adeelfaisal701@gmail.com
-                </a>
+                <div className="ci-text">
+                  <a href="mailto:adeelfaisal701@gmail.com">adeelfaisal701@gmail.com</a>
+                </div>
               </div>
-              <div className="contact-row">
-                <div className="contact-icon" aria-hidden>
+              <div className="ci">
+                <div className="ci-icon" aria-hidden>
                   ☎
                 </div>
-                <span>0309-1407288</span>
+                <div className="ci-text">0309-1407288</div>
               </div>
-              <div className="contact-row">
-                <div className="contact-icon" aria-hidden>
+              <div className="ci">
+                <div className="ci-icon" aria-hidden>
                   📍
                 </div>
-                <span>Lahore, Pakistan</span>
+                <div className="ci-text">Lahore, Pakistan</div>
               </div>
             </div>
           </div>
@@ -200,8 +234,8 @@ export default function Home() {
       <div className="marquee-wrap" aria-hidden>
         <div className="marquee-inner">
           {marqueeLoop.map((label, i) => (
-            <span key={`${label}-${i}`} className="marquee-item">
-              <span className="marquee-dot" />
+            <span key={`${label}-${i}`} className="mi">
+              <span className="mi-dot" />
               {label}
             </span>
           ))}
@@ -209,41 +243,49 @@ export default function Home() {
       </div>
 
       <section className="section" id="work">
-        <p className="sec-tag">Selected Work</p>
-        <h2 className="sec-title">
+        <p className="sec-eyebrow">Selected Work</p>
+        <h2 className="sec-h2">
           Projects that <span>Shipped</span>
         </h2>
         <p className="sec-sub">
-          Real products, real clients. Every project is built with production-grade
-          code and attention to detail.
+          Real products, real clients. Built with clean code and attention to detail
+          — every project has measurable impact.
         </p>
         <div className="proj-grid">
           {PROJECTS.map((p) => (
-            <article key={p.title} className="proj-card">
-              <div className={`proj-thumb ${p.thumbClass}`}>
-                <div className="proj-thumb-icon">{p.icon}</div>
+            <article key={p.title} className="pcard">
+              <div className={`pcard-img ${p.imgClass}`}>
+                <div
+                  className="pcard-glow"
+                  style={p.glow ? { background: p.glow } : undefined}
+                />
+                <div className="pcard-emoji">{p.emoji}</div>
               </div>
-              <div className="proj-body">
-                <p className="proj-badge">{p.badge}</p>
-                <h3 className="proj-title">{p.title}</h3>
-                <p className="proj-desc">{p.desc}</p>
-                <div className="proj-pills">
+              <div className="pcard-body">
+                <p className="pcard-tag">{p.tag}</p>
+                <h3 className="pcard-title">{p.title}</h3>
+                <p className="pcard-impact">{p.impact}</p>
+                <p className="pcard-desc">{p.desc}</p>
+                <div className="pcard-pills">
                   {p.pills.map((pill) => (
-                    <span key={pill} className="pill">
+                    <span key={pill} className="ppill">
                       {pill}
                     </span>
                   ))}
                 </div>
-                {p.repoUrl && p.repoLabel ? (
+                <div className="pcard-btns">
+                  <a href={p.liveUrl} className="pbtn-live">
+                    Live Demo ↗
+                  </a>
                   <a
-                    href={p.repoUrl}
+                    href={p.ghUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="proj-footer-link"
+                    className="pbtn-gh"
                   >
-                    {p.repoLabel} →
+                    GitHub
                   </a>
-                ) : null}
+                </div>
               </div>
             </article>
           ))}
@@ -253,58 +295,42 @@ export default function Home() {
       <section className="section" style={{ paddingTop: 0 }} id="about">
         <div className="about-grid">
           <div>
-            <p className="sec-tag">About Me</p>
-            <h2 className="about-big">
-              Developer who <span>ships</span>, not just codes.
+            <p className="sec-eyebrow">About Me</p>
+            <h2 className="about-h">
+              Developer who <span>ships</span>,<br />
+              not just codes.
             </h2>
-            <p className="about-text">
-              I&apos;m a Full-Stack developer from Lahore with 2+ years of experience
-              building scalable web apps. I use AI-assisted workflows (Cursor AI,
-              GitHub Copilot) to deliver 3x faster without cutting quality.
+            <p className="about-p">
+              I&apos;m a Full-Stack developer from Lahore with 2+ years of real-world
+              experience. I use AI-assisted workflows (Cursor AI, GitHub Copilot) to
+              build and ship 3x faster — without cutting quality. Every line of code I
+              write has a purpose.
             </p>
-            <div className="exp-item">
-              <div className="exp-year">2026</div>
-              <div>
-                <div className="exp-role">Web Developer</div>
-                <div className="exp-co">Hangport · Lahore, Pakistan</div>
-              </div>
-            </div>
-            <div className="exp-item">
-              <div className="exp-year">2025</div>
-              <div>
-                <div className="exp-role">Web Developer</div>
-                <div className="exp-co">Hangport · Lahore, Pakistan</div>
-              </div>
-            </div>
-            <div className="exp-item">
-              <div className="exp-year">2024</div>
-              <div>
-                <div className="exp-role">Freelance Full-Stack Developer</div>
-                <div className="exp-co">Independent · Remote</div>
-              </div>
-            </div>
-            <div className="exp-item">
-              <div className="exp-year">2023–24</div>
-              <div>
-                <div className="exp-role">Web Developer</div>
-                <div className="exp-co">Startup / Agency Projects</div>
-              </div>
-            </div>
-            <div className="exp-item">
-              <div className="exp-year">2022–23</div>
-              <div>
-                <div className="exp-role">Frontend Developer</div>
-                <div className="exp-co">Learning & Freelance</div>
-              </div>
+            <div className="exp-list">
+              {EXPERIENCE.map((e) => (
+                <div key={e.yr + e.role} className="exp-item">
+                  <div className="exp-yr">{e.yr}</div>
+                  <div>
+                    <div className="exp-role">{e.role}</div>
+                    <div className="exp-co">{e.co}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div id="skills">
-            <div className="skills-right">
+            <div className="skills-grid">
               {SKILL_BOXES.map((s) => (
-                <div key={s.name} className="skill-box">
-                  <div className="sb-icon">{s.icon}</div>
-                  <div className="sb-name">{s.name}</div>
-                  <div className="sb-level">{s.level}</div>
+                <div key={s.name} className="sbox">
+                  <span className="sbox-icon">{s.icon}</span>
+                  <div className="sbox-name">{s.name}</div>
+                  <div className="sbox-level">{s.level}</div>
+                  <div className="sbox-bar">
+                    <div
+                      className="sbox-bar-fill"
+                      style={{ width: `${s.pct}%` }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -313,25 +339,22 @@ export default function Home() {
       </section>
 
       <section className="section" style={{ paddingTop: 0 }}>
-        <p className="sec-tag">Social Proof</p>
-        <h2 className="sec-title">
+        <p className="sec-eyebrow">Social Proof</p>
+        <h2 className="sec-h2">
           Clients <span>Trust Me</span>
         </h2>
-        <p className="sec-sub">
-          Don&apos;t take my word for it — here&apos;s what clients say after we ship
-          together.
-        </p>
+        <p className="sec-sub">Real feedback from real clients. No templates, no fakes.</p>
         <div className="test-grid">
-          <div className="test-card">
+          <div className="tcard">
             <div className="stars">★★★★★</div>
-            <p className="test-quote">
+            <p className="tquote">
               &quot;Faisal delivered our e-commerce platform ahead of schedule. The
               code was clean, the design was sharp, and he communicated perfectly
-              throughout.&quot;
+              throughout. Will hire again.&quot;
             </p>
-            <div className="test-author">
+            <div className="tauthor">
               <div
-                className="test-av"
+                className="tav"
                 style={{
                   background: "linear-gradient(135deg,#7B61FF,#C084FC)",
                 }}
@@ -339,67 +362,71 @@ export default function Home() {
                 AK
               </div>
               <div>
-                <div className="test-name">Ahmed K.</div>
-                <div className="test-role-t">CEO, TechBridge PK</div>
+                <div className="tname">Ahmed K.</div>
+                <div className="trole">CEO, TechBridge PK</div>
               </div>
             </div>
           </div>
-          <div className="test-card">
+          <div className="tcard">
             <div className="stars">★★★★★</div>
-            <p className="test-quote">
-              &quot;Best developer I&apos;ve worked with on Upwork. He understood our
-              vision immediately and built exactly what we needed — zero revisions
-              needed.&quot;
+            <p className="tquote">
+              &quot;Best developer I&apos;ve worked with. He understood our vision
+              immediately and built exactly what we needed — zero revisions, zero
+              delays. Highly recommended.&quot;
             </p>
-            <div className="test-author">
+            <div className="tauthor">
               <div
-                className="test-av"
+                className="tav"
                 style={{
-                  background: "linear-gradient(135deg,#10b981,#059669)",
+                  background: "linear-gradient(135deg,#059669,#10b981)",
                 }}
               >
                 SM
               </div>
               <div>
-                <div className="test-name">Sara M.</div>
-                <div className="test-role-t">Product Lead, DataFlow</div>
+                <div className="tname">Sara M.</div>
+                <div className="trole">Product Lead, DataFlow</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="cta-section" id="cta">
-        <h2 className="cta-title">
-          Ready to build
+      <div className="cta-wrap" id="cta">
+        <h2 className="cta-h">
+          Ready to build something
           <br />
-          something <span>incredible?</span>
+          <span>incredible?</span>
         </h2>
-        <p className="cta-sub">
+        <p className="cta-p">
           I&apos;m available for freelance projects and full-time roles. Let&apos;s talk
           about your idea.
         </p>
-        <div className="cta-row-center">
+        <div className="resp-badge">⚡ Response within 24 hours</div>
+        <div className="cta-btns">
           <a
             href="mailto:adeelfaisal701@gmail.com?subject=Start%20a%20project"
-            className="btn-primary"
+            className="cta-main cta-compact"
           >
             Start a Project ↗
           </a>
-          <a href="mailto:adeelfaisal701@gmail.com" className="btn-ghost">
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="cta-wa">
+            <span>💬</span> WhatsApp Me
+          </a>
+          <a href="mailto:adeelfaisal701@gmail.com" className="cta-email">
             adeelfaisal701@gmail.com
           </a>
         </div>
       </div>
 
       <footer className="footer">
-        <div className="footer-logo">
+        <div className="f-logo">
           <span>FA</span>.dev
         </div>
-        <div className="footer-copy">© 2026 Faisal Adeel. All rights reserved.</div>
-        <div className="footer-links">
+        <div className="f-copy">© 2026 Faisal Adeel · All rights reserved.</div>
+        <div className="f-links">
           <a
-            className="footer-link"
+            className="f-link"
             href="https://github.com/adeelfaisal701"
             target="_blank"
             rel="noopener noreferrer"
@@ -407,14 +434,14 @@ export default function Home() {
             GitHub
           </a>
           <a
-            className="footer-link"
+            className="f-link"
             href="https://www.linkedin.com/in/faisal-adeel-0246ab238"
             target="_blank"
             rel="noopener noreferrer"
           >
             LinkedIn
           </a>
-          <a className="footer-link" href="#" title="Add your Twitter / X URL">
+          <a className="f-link" href="#" title="Add your Twitter / X URL">
             Twitter
           </a>
         </div>
