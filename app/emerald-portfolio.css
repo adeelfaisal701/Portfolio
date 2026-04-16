@@ -1,0 +1,2449 @@
+/* Emerald landing — scoped under .emerald-portfolio */
+
+.emerald-portfolio {
+  /* Space Grotesk (headings) + Inter (body) via next/font variables */
+  --syne: var(--font-syne), system-ui, sans-serif;
+  --inst: var(--font-inst), system-ui, sans-serif;
+  --fira: var(--font-fira), ui-monospace, "Cascadia Code", monospace;
+  --emerald: #00ff88;
+  --emerald-dim: #00cc6a;
+  --blue: #4f9eff;
+  --cyan: #00d4ff;
+  --violet: #a78bfa;
+  --bg: #020b08;
+  --bg-mid: #040f0a;
+  --surface: rgba(0, 255, 136, 0.03);
+  --border: rgba(0, 255, 136, 0.1);
+  --border-bright: rgba(0, 255, 136, 0.3);
+  --text: #e8fff4;
+  --text-d: rgba(232, 255, 244, 0.5);
+  --text-g: rgba(232, 255, 244, 0.18);
+  /* Premium card system (shared) */
+  --card-radius: 16px;
+  --card-radius-lg: 20px;
+  --card-radius-sm: 8px;
+  --card-glass-tint: linear-gradient(155deg, rgba(255, 255, 255, 0.055) 0%, transparent 45%);
+  --card-edge: rgba(0, 255, 136, 0.14);
+  --card-edge-hover: rgba(0, 212, 255, 0.35);
+  --card-shadow: 0 4px 28px rgba(0, 0, 0, 0.38);
+  --card-shadow-hover: 0 22px 56px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 255, 136, 0.12) inset;
+  --card-glow-emerald: 0 0 48px rgba(0, 255, 136, 0.14);
+  --card-glow-blue: 0 0 40px rgba(79, 158, 255, 0.12);
+  --ease-card: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-card: 320ms;
+
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--inst);
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100dvh;
+}
+
+.emerald-portfolio *,
+.emerald-portfolio *::before,
+.emerald-portfolio *::after {
+  box-sizing: border-box;
+}
+
+/* ── CURSOR ── */
+.emerald-portfolio #cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--emerald);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+  transition:
+    width 0.25s,
+    height 0.25s,
+    background 0.2s,
+    border-radius 0.2s;
+}
+
+.emerald-portfolio #cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.35s,
+    height 0.35s,
+    border-color 0.2s;
+}
+
+.emerald-portfolio #cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 3px;
+  background: var(--cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+}
+
+.emerald-portfolio:has(a:hover) #cursor,
+.emerald-portfolio:has(button:hover) #cursor {
+  width: 16px;
+  height: 16px;
+  background: var(--cyan);
+  border-radius: 2px;
+}
+
+.emerald-portfolio:has(a:hover) #cursor-ring,
+.emerald-portfolio:has(button:hover) #cursor-ring {
+  width: 56px;
+  height: 56px;
+  border-color: var(--cyan);
+}
+
+.emerald-portfolio:has(.project-card:hover) #cursor {
+  width: 64px;
+  height: 64px;
+  background: rgba(0, 255, 136, 0.12);
+  border-radius: 50%;
+  border: 1px solid var(--emerald);
+}
+
+/* ── LOADER ── */
+.emerald-portfolio #loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.emerald-portfolio .ld-logo {
+  font-family: var(--syne);
+  font-size: 2.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio .ld-sub {
+  font-family: var(--fira);
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  color: rgba(232, 255, 244, 0.28);
+  text-transform: uppercase;
+}
+
+.emerald-portfolio .ld-bar {
+  width: 200px;
+  height: 1px;
+  background: rgba(0, 255, 136, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.emerald-portfolio .ld-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  width: 0%;
+  transition: width 0.05s;
+}
+
+.emerald-portfolio .ld-pct {
+  font-family: var(--fira);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: rgba(232, 255, 244, 0.28);
+}
+
+/* ── THREE CANVAS ── */
+.emerald-portfolio #cv-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.emerald-portfolio #cv-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── NOISE + GRID ── */
+.emerald-portfolio #noise {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px;
+}
+
+.emerald-portfolio #grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.022;
+  background-image:
+    linear-gradient(rgba(0, 255, 136, 1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 1) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+/* ── ORBS ── */
+.emerald-portfolio .orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(140px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.emerald-portfolio #o1 {
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.08), transparent 70%);
+  top: -200px;
+  left: 60%;
+  transform: translateX(-50%);
+}
+
+.emerald-portfolio #o2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(79, 158, 255, 0.06), transparent 70%);
+  bottom: 10%;
+  right: -150px;
+}
+
+.emerald-portfolio #o3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.06), transparent 70%);
+  top: 40%;
+  left: -80px;
+}
+
+.emerald-portfolio .emerald-app {
+  position: relative;
+  z-index: 10;
+}
+
+.emerald-portfolio nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 56px;
+  transition: all 0.4s;
+}
+
+.emerald-portfolio nav.sc {
+  padding: 14px 56px;
+  background: rgba(2, 11, 8, 0.94);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+}
+
+.emerald-portfolio .n-logo {
+  font-family: var(--syne);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio .n-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+
+.emerald-portfolio .n-links a {
+  font-family: var(--fira);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-d);
+  text-decoration: none;
+  font-weight: 500;
+  transition:
+    color 0.25s ease,
+    font-weight 0.25s ease,
+    text-shadow 0.25s ease;
+  position: relative;
+}
+
+.emerald-portfolio .n-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--emerald);
+  transition: width 0.3s;
+}
+
+.emerald-portfolio .n-links a:hover {
+  color: var(--emerald);
+  font-weight: 600;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.25);
+}
+
+.emerald-portfolio .n-links a:hover::after {
+  width: 100%;
+}
+
+.emerald-portfolio .n-cta {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  font-family: var(--inst);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #02120c;
+  padding: 11px 26px;
+  border: none;
+  border-radius: 6px 16px 6px 14px;
+  cursor: none;
+  text-decoration: none;
+  background: linear-gradient(120deg, #00ff88, #00d4ff, #00ff88);
+  background-size: 180% 100%;
+  background-position: 0% 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 8px 28px rgba(0, 255, 136, 0.22);
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease,
+    background-position 0.45s ease,
+    filter 0.32s ease;
+}
+
+.emerald-portfolio .n-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.emerald-portfolio .n-cta:hover {
+  transform: translateY(-3px) scale(1.05);
+  background-position: 100% 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.28) inset,
+    0 16px 44px rgba(0, 255, 136, 0.28),
+    0 0 48px rgba(0, 212, 255, 0.12);
+  filter: brightness(1.03);
+}
+
+.emerald-portfolio .n-cta:hover::after {
+  opacity: 1;
+}
+
+.emerald-portfolio .n-cta-txt,
+.emerald-portfolio .n-cta-ico {
+  position: relative;
+  z-index: 1;
+}
+
+.emerald-portfolio .n-cta-ico {
+  display: inline-block;
+  font-size: 0.85em;
+  transition: transform 0.3s ease;
+}
+
+.emerald-portfolio .n-cta:hover .n-cta-ico {
+  transform: translate(3px, -2px);
+}
+
+.emerald-portfolio .status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--fira);
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-edge);
+  border-radius: 999px;
+  padding: 9px 22px 9px 18px;
+  margin-bottom: 28px;
+  opacity: 0;
+  box-shadow: var(--card-shadow), 0 0 32px rgba(0, 255, 136, 0.06);
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .status-chip:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: var(--card-edge-hover);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald);
+}
+
+.emerald-portfolio .chip-icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  opacity: 0.88;
+}
+
+.emerald-portfolio .chip-icon {
+  width: 100%;
+  height: 100%;
+  color: var(--emerald);
+  transition: transform var(--t-card) var(--ease-card), filter var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .status-chip:hover .chip-icon {
+  transform: rotate(-10deg) scale(1.12);
+  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.45));
+}
+
+.emerald-portfolio .cta-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: 0.15em;
+  vertical-align: -0.12em;
+  color: var(--emerald);
+  opacity: 0.85;
+}
+
+.emerald-portfolio .cta-bolt {
+  width: 100%;
+  height: 100%;
+}
+
+.emerald-portfolio .status-chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  animation: ep-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ep-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.5);
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 0 7px rgba(0, 255, 136, 0);
+  }
+}
+
+.emerald-portfolio #hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative;
+}
+
+.emerald-portfolio .h-title {
+  font-family: var(--syne);
+  font-weight: 700;
+  font-size: clamp(3.5rem, 10vw, 10rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  margin-bottom: 24px;
+  opacity: 0;
+}
+
+.emerald-portfolio .h-title .name {
+  display: block;
+  background: linear-gradient(160deg, #fff 0%, #b8ffe0 30%, var(--emerald) 70%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio .h-title .role {
+  display: block;
+  font-size: clamp(1.4rem, 4vw, 4rem);
+  font-weight: 500;
+  font-style: normal;
+  font-family: var(--inst);
+  letter-spacing: 0.02em;
+  color: rgba(232, 255, 244, 0.72);
+  background: linear-gradient(90deg, rgba(232, 255, 244, 0.55), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio .h-sub {
+  font-family: var(--inst);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  font-weight: 400;
+  color: var(--text-d);
+  max-width: 520px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  margin: 0 auto 48px;
+  opacity: 0;
+}
+
+.emerald-portfolio .h-acts {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  opacity: 0;
+}
+
+.emerald-portfolio .btn-p {
+  position: relative;
+  isolation: isolate;
+  font-family: var(--inst);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 16px 42px;
+  color: #02120c;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  cursor: none;
+  overflow: hidden;
+  border: none;
+  border-radius: 6px 20px 8px 18px;
+  background: linear-gradient(120deg, #00ff88, #00d4ff, #00ff88);
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 0 24px rgba(0, 255, 136, 0.18) inset,
+    0 10px 36px rgba(0, 255, 136, 0.2),
+    0 4px 0 rgba(0, 0, 0, 0.15);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    background-position 0.55s ease,
+    filter 0.35s ease;
+}
+
+.emerald-portfolio .btn-p::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.emerald-portfolio .btn-p::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.emerald-portfolio .btn-p:hover {
+  transform: translateY(-4px) scale(1.035) perspective(500px) rotateX(2deg);
+  background-position: 100% 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18) inset,
+    0 0 32px rgba(0, 255, 136, 0.25) inset,
+    0 20px 56px rgba(0, 255, 136, 0.32),
+    0 0 80px rgba(0, 212, 255, 0.12);
+  filter: brightness(1.04) saturate(1.05);
+}
+
+.emerald-portfolio .btn-p:hover::before {
+  transform: translateX(100%);
+}
+
+.emerald-portfolio .btn-p:hover::after {
+  opacity: 1;
+}
+
+.emerald-portfolio .btn-p > * {
+  position: relative;
+  z-index: 2;
+}
+
+.emerald-portfolio .btn-p .btn-p-txt {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.emerald-portfolio .btn-p:hover .btn-p-txt {
+  transform: translateY(-1px);
+}
+
+.emerald-portfolio .btn-p .btn-p-chev,
+.emerald-portfolio .btn-p .btn-p-ico {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.emerald-portfolio .btn-p:hover .btn-p-chev,
+.emerald-portfolio .btn-p:hover .btn-p-ico {
+  transform: translateX(7px);
+}
+
+.emerald-portfolio .btn-p:disabled,
+.emerald-portfolio .btn-p[disabled] {
+  opacity: 0.55;
+  cursor: wait;
+  transform: none !important;
+  filter: none !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 6px 20px rgba(0, 255, 136, 0.1);
+}
+
+.emerald-portfolio .btn-p:disabled:hover::before,
+.emerald-portfolio .btn-p[disabled]:hover::before {
+  transform: translateX(-100%);
+}
+
+.emerald-portfolio .btn-p:disabled,
+.emerald-portfolio .btn-p[disabled] {
+  background-position: 0% 50%;
+}
+
+.emerald-portfolio .btn-p:disabled .btn-p-txt,
+.emerald-portfolio .btn-p:disabled .btn-p-chev,
+.emerald-portfolio .btn-p:disabled .btn-p-ico,
+.emerald-portfolio .btn-p[disabled] .btn-p-txt,
+.emerald-portfolio .btn-p[disabled] .btn-p-chev,
+.emerald-portfolio .btn-p[disabled] .btn-p-ico {
+  transform: none;
+}
+
+.emerald-portfolio .btn-o {
+  position: relative;
+  isolation: isolate;
+  font-family: var(--fira);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(232, 255, 244, 0.72);
+  padding: 16px 34px;
+  cursor: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  overflow: hidden;
+  border-radius: 18px 6px 20px 8px;
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  background: rgba(2, 11, 8, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 8px 28px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.32s ease,
+    border-color 0.32s ease,
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+}
+
+.emerald-portfolio .btn-o::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(125deg, rgba(0, 255, 136, 0.22), rgba(0, 212, 255, 0.18), rgba(0, 255, 136, 0.12));
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+.emerald-portfolio .btn-o::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: 0 0 36px rgba(0, 255, 136, 0.22);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.emerald-portfolio .btn-o:hover {
+  color: #e8fff4;
+  border-color: rgba(0, 255, 136, 0.5);
+  transform: translateY(-4px) scale(1.03) perspective(480px) rotateX(-1.5deg);
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 136, 0.15) inset,
+    0 18px 48px rgba(0, 255, 136, 0.14),
+    0 0 48px rgba(0, 212, 255, 0.1);
+}
+
+.emerald-portfolio .btn-o:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.emerald-portfolio .btn-o:hover::after {
+  opacity: 1;
+}
+
+.emerald-portfolio .btn-o > * {
+  position: relative;
+  z-index: 2;
+}
+
+.emerald-portfolio .btn-o .btn-o-txt {
+  display: inline-block;
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.emerald-portfolio .btn-o:hover .btn-o-txt {
+  transform: translateY(-1px);
+}
+
+.emerald-portfolio .btn-whatsapp {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px 22px 13px 18px;
+  border-radius: 10px 20px 10px 18px;
+  background: #25d366;
+  color: #fff;
+  font-family: var(--inst);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  cursor: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.12) inset,
+    0 8px 28px rgba(37, 211, 102, 0.25);
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease,
+    filter 0.32s ease,
+    background-color 0.32s ease;
+}
+
+.emerald-portfolio .btn-whatsapp--compact {
+  padding: 11px 18px 11px 14px;
+  gap: 10px;
+}
+
+.emerald-portfolio .btn-whatsapp-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.emerald-portfolio .btn-whatsapp-svg {
+  width: 22px;
+  height: 22px;
+  color: #fff;
+}
+
+.emerald-portfolio .btn-whatsapp-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.emerald-portfolio .btn-whatsapp-title {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-size: 0.82rem;
+}
+
+.emerald-portfolio .btn-whatsapp-sub {
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  margin-top: 2px;
+}
+
+.emerald-portfolio .btn-whatsapp:hover {
+  transform: translateY(-3px) scale(1.03);
+  background: #2fe573;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18) inset,
+    0 14px 40px rgba(37, 211, 102, 0.38),
+    0 0 48px rgba(37, 211, 102, 0.22);
+  filter: brightness(1.02);
+}
+
+.emerald-portfolio .btn-whatsapp:active {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.emerald-portfolio .h-stats {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 56px;
+  opacity: 0;
+}
+
+.emerald-portfolio .h-stat {
+  text-align: center;
+  min-width: 140px;
+  padding: 22px 28px 20px;
+  border-radius: var(--card-radius);
+  background: var(--card-glass-tint), rgba(14, 18, 17, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-edge);
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.03);
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+  transform-style: preserve-3d;
+}
+
+.emerald-portfolio .h-stat:hover {
+  transform: translateY(-6px) scale(1.03) perspective(800px) rotateX(4deg);
+  border-color: var(--card-edge-hover);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald), var(--card-glow-blue);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.07);
+}
+
+.emerald-portfolio .h-stat-num {
+  font-family: var(--syne);
+  font-weight: 700;
+  font-size: 2.4rem;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  transition: transform var(--t-card) var(--ease-card), filter var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .h-stat:hover .h-stat-num {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.35));
+}
+
+.emerald-portfolio .h-stat-lbl {
+  font-family: var(--fira);
+  font-size: 0.52rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-g);
+  margin-top: 6px;
+}
+
+.emerald-portfolio .scroll-ind {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+}
+
+.emerald-portfolio .scroll-ind span {
+  font-family: var(--fira);
+  font-size: 0.5rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-g);
+}
+
+.emerald-portfolio .s-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, var(--emerald), transparent);
+  animation: ep-sp 2.2s ease-in-out infinite;
+}
+
+@keyframes ep-sp {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.emerald-portfolio .mq-wrap {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  background: rgba(0, 255, 136, 0.015);
+  position: relative;
+  z-index: 10;
+}
+
+.emerald-portfolio .mq-track {
+  display: flex;
+  white-space: nowrap;
+  animation: ep-mq 20s linear infinite;
+}
+
+.emerald-portfolio .mq-item {
+  font-family: var(--fira);
+  font-size: 0.56rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  padding: 0 46px;
+  opacity: 0.7;
+}
+
+.emerald-portfolio .mq-item::before {
+  content: "◆";
+  margin-right: 46px;
+  opacity: 0.3;
+}
+
+@keyframes ep-mq {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.emerald-portfolio .section {
+  padding: 130px 56px;
+  position: relative;
+  z-index: 10;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.emerald-portfolio .s-label {
+  font-family: var(--fira);
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emerald-portfolio .s-label::before {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: var(--emerald);
+}
+
+.emerald-portfolio .s-title {
+  font-family: var(--syne);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 5vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  margin-bottom: 56px;
+}
+
+.emerald-portfolio .s-title em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio #work .proj-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  perspective: 1200px;
+}
+
+.emerald-portfolio .project-card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  border-radius: var(--card-radius-lg) calc(var(--card-radius-lg) + 4px) var(--card-radius) var(--card-radius-lg);
+  background: var(--card-glass-tint), rgba(14, 18, 17, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-edge);
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+  cursor: none;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .project-card .proj-title,
+.emerald-portfolio .project-card .proj-desc {
+  transition:
+    color 0.3s ease,
+    font-weight 0.3s ease,
+    text-shadow 0.3s ease;
+}
+
+.emerald-portfolio .project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(0, 255, 136, 0.09), transparent 55%, rgba(79, 158, 255, 0.05));
+  opacity: 0;
+  transition: opacity var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .project-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan), var(--blue));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform calc(var(--t-card) + 40ms) var(--ease-card);
+}
+
+.emerald-portfolio .project-card:hover {
+  border-color: var(--card-edge-hover);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald), var(--card-glow-blue);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.06);
+  transform: translateY(-10px) scale(1.02) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+}
+
+.emerald-portfolio .project-card:hover::before {
+  opacity: 1;
+}
+
+.emerald-portfolio .project-card:hover::after {
+  transform: scaleX(1);
+}
+
+.emerald-portfolio .project-card:hover .proj-title {
+  color: var(--text);
+  font-weight: 600;
+  text-shadow: 0 0 28px rgba(0, 255, 136, 0.12);
+}
+
+.emerald-portfolio .project-card:hover .proj-desc {
+  color: rgba(232, 255, 244, 0.78);
+  font-weight: 500;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.08);
+}
+
+.emerald-portfolio .proj-icon-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--emerald);
+}
+
+.emerald-portfolio .proj-icon-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 14px;
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.2), transparent 68%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.emerald-portfolio .project-card:hover .proj-icon-wrap::before {
+  opacity: 1;
+}
+
+.emerald-portfolio .proj-icon {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  z-index: 1;
+  transition: transform var(--t-card) var(--ease-card), filter var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .project-card:hover .proj-icon {
+  transform: scale(1.08) rotate(-5deg);
+  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.45));
+}
+
+.emerald-portfolio .proj-icon-wrap--image {
+  width: 100%;
+  max-width: 200px;
+  min-height: 72px;
+  height: auto;
+  margin-bottom: 18px;
+  justify-content: flex-start;
+}
+
+.emerald-portfolio .proj-icon-img {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  /* Was 64px — too small for tall renders (robot ~193px), caused blocky edges */
+  max-height: 112px;
+  object-fit: contain;
+  object-position: left center;
+  border-radius: 8px;
+  image-rendering: auto;
+  transition: transform var(--t-card) var(--ease-card), filter var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .project-card:hover .proj-icon-img {
+  transform: scale(1.05) translateY(-2px);
+  filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.35)) saturate(1.05);
+}
+
+.emerald-portfolio .proj-cat {
+  font-family: var(--fira);
+  font-size: 0.54rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+
+.emerald-portfolio .proj-title {
+  font-family: var(--syne);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.emerald-portfolio .proj-impact {
+  font-family: var(--fira);
+  font-size: 0.62rem;
+  color: var(--emerald);
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+}
+
+.emerald-portfolio .proj-desc {
+  font-family: var(--inst);
+  font-size: 0.86rem;
+  color: var(--text-d);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.emerald-portfolio .proj-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.emerald-portfolio .proj-tag {
+  font-family: var(--fira);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  padding: 6px 12px;
+  border-radius: var(--card-radius-sm);
+  border: 1px solid rgba(0, 255, 136, 0.12);
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(232, 255, 244, 0.42);
+  text-transform: uppercase;
+  transition: border-color var(--t-card) ease-in-out, color var(--t-card) ease-in-out, background var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .project-card:hover .proj-tag {
+  border-color: rgba(0, 212, 255, 0.2);
+  color: rgba(232, 255, 244, 0.55);
+  background: rgba(0, 255, 136, 0.04);
+}
+
+.emerald-portfolio .proj-links {
+  display: flex;
+  gap: 10px;
+}
+
+.emerald-portfolio .proj-link {
+  font-family: var(--fira);
+  font-size: 0.54rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 8px 16px;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease;
+}
+
+.emerald-portfolio .proj-link.primary {
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  color: var(--emerald);
+}
+
+.emerald-portfolio .proj-link.primary:hover {
+  background: rgba(0, 255, 136, 0.18);
+  color: #cfffec;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 255, 136, 0.12);
+}
+
+.emerald-portfolio .proj-link.ghost {
+  border: 1px solid var(--border);
+  color: var(--text-g);
+}
+
+.emerald-portfolio .proj-link.ghost:hover {
+  color: rgba(232, 255, 244, 0.85);
+  border-color: rgba(0, 255, 136, 0.22);
+  transform: translateY(-1px);
+}
+
+.emerald-portfolio .project-card .glow {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(
+    circle closest-side,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(0, 255, 136, 0.14) 22%,
+    rgba(0, 212, 255, 0.1) 48%,
+    transparent 72%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity var(--t-card) ease-in-out;
+  z-index: 0;
+}
+
+.emerald-portfolio .project-card:hover .glow {
+  opacity: 1;
+}
+
+.emerald-portfolio .project-card > *:not(.glow) {
+  position: relative;
+  z-index: 1;
+}
+
+.emerald-portfolio #about .about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.emerald-portfolio .about-text p {
+  font-family: var(--inst);
+  font-size: 1.05rem;
+  color: var(--text-d);
+  line-height: 1.72;
+  letter-spacing: 0.01em;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.emerald-portfolio .about-text p strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.emerald-portfolio .timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  perspective: 1000px;
+}
+
+.emerald-portfolio .tl-item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 20px;
+  padding: 22px 22px 22px 18px;
+  margin-left: 0;
+  margin-right: 0;
+  border: 1px solid var(--card-edge);
+  border-left: 2px solid rgba(0, 255, 136, 0.22);
+  position: relative;
+  cursor: none;
+  border-radius: var(--card-radius-lg);
+  background: var(--card-glass-tint), rgba(14, 18, 17, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.03);
+  transform-style: preserve-3d;
+  transition:
+    transform var(--t-card) var(--ease-card),
+    background var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    border-left-color var(--t-card) ease-in-out,
+    box-shadow var(--t-card) ease-in-out;
+  transform-origin: left center;
+}
+
+.emerald-portfolio .tl-item:last-child {
+  margin-bottom: 0;
+}
+
+.emerald-portfolio .tl-item:hover {
+  transform: translateX(6px) translateY(-4px) scale(1.01) perspective(880px) rotateX(3deg) rotateY(-1.2deg);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.06);
+  border-color: var(--card-edge-hover);
+  border-left-color: var(--cyan);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald), var(--card-glow-blue);
+}
+
+.emerald-portfolio .tl-item:hover .tl-content h4 {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.emerald-portfolio .tl-item:hover .tl-content span {
+  color: rgba(232, 255, 244, 0.42);
+}
+
+.emerald-portfolio .tl-item:hover .tl-year {
+  opacity: 1;
+  color: var(--cyan);
+}
+
+.emerald-portfolio .tl-year {
+  font-family: var(--fira);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--emerald);
+  padding-top: 4px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.emerald-portfolio .tl-content h4 {
+  font-family: var(--syne);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.emerald-portfolio .tl-content span {
+  font-family: var(--fira);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--text-g);
+  transition: color 0.3s ease;
+}
+
+.emerald-portfolio #skills .skills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  perspective: 1100px;
+}
+
+.emerald-portfolio .skill-card {
+  padding: 28px 26px;
+  border-radius: var(--card-radius-lg) var(--card-radius) var(--card-radius-lg) var(--card-radius);
+  background:
+    radial-gradient(90% 65% at 50% -8%, rgba(0, 212, 255, 0.1), transparent 55%),
+    var(--card-glass-tint),
+    rgba(14, 18, 17, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-edge);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 1px 0 0 rgba(255, 255, 255, 0.03);
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+  cursor: none;
+}
+
+.emerald-portfolio .skill-card::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan), var(--blue));
+  transition: width calc(var(--t-card) + 60ms) var(--ease-card);
+}
+
+.emerald-portfolio .skill-card:hover {
+  background:
+    radial-gradient(95% 70% at 50% -12%, rgba(0, 212, 255, 0.22), transparent 58%),
+    var(--card-glass-tint),
+    rgba(0, 255, 136, 0.07);
+  border-color: var(--card-edge-hover);
+  transform: translateY(-8px) scale(1.02) perspective(900px) rotateX(4deg) rotateY(-2deg);
+  box-shadow:
+    var(--card-shadow-hover),
+    var(--card-glow-emerald),
+    var(--card-glow-blue),
+    inset 0 110px 90px -72px rgba(0, 212, 255, 0.09);
+}
+
+.emerald-portfolio .skill-card:hover .skill-name {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.emerald-portfolio .skill-card:hover::before {
+  width: 100%;
+}
+
+.emerald-portfolio .skill-icon-wrap {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cyan);
+}
+
+.emerald-portfolio .skill-icon-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.16), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.emerald-portfolio .skill-card:hover .skill-icon-wrap::after {
+  opacity: 1;
+}
+
+.emerald-portfolio .skill-icon {
+  width: 30px;
+  height: 30px;
+  position: relative;
+  z-index: 1;
+  opacity: 0.95;
+  transition: transform var(--t-card) var(--ease-card), filter var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .skill-card:hover .skill-icon {
+  transform: scale(1.08) rotate(6deg) translateY(-2px);
+  filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.45));
+}
+
+.emerald-portfolio .skill-name {
+  font-family: var(--syne);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.emerald-portfolio .skill-bar-wrap {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(0, 255, 136, 0.07);
+  overflow: hidden;
+}
+
+.emerald-portfolio .skill-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--emerald) 0%, var(--cyan) 42%, var(--blue) 100%);
+  width: 0%;
+  transition: width 1.5s ease, box-shadow var(--t-card) ease-in-out;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.35);
+}
+
+.emerald-portfolio .skill-card:hover .skill-bar {
+  box-shadow: 0 0 22px rgba(0, 212, 255, 0.5), 0 0 12px rgba(0, 255, 136, 0.25);
+}
+
+.emerald-portfolio .skill-pct {
+  font-family: var(--fira);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--text-g);
+  margin-top: 6px;
+}
+
+.emerald-portfolio #social .test-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  perspective: 1100px;
+}
+
+.emerald-portfolio .test-card {
+  padding: 40px 36px;
+  border-radius: var(--card-radius-lg) var(--card-radius) calc(var(--card-radius-lg) + 2px) var(--card-radius-lg);
+  background: var(--card-glass-tint), rgba(14, 18, 17, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-edge);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+  cursor: none;
+}
+
+.emerald-portfolio .test-card .test-text,
+.emerald-portfolio .test-card .test-info h4 {
+  transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.emerald-portfolio .test-card::before {
+  content: '"';
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  font-family: var(--syne);
+  font-size: 8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.035);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.emerald-portfolio .test-card:hover {
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.06);
+  border-color: var(--card-edge-hover);
+  transform: translateY(-8px) scale(1.02) perspective(920px) rotateX(3.5deg) rotateY(1.5deg);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald), var(--card-glow-blue);
+}
+
+.emerald-portfolio .test-card:hover .test-text {
+  color: rgba(232, 255, 244, 0.82);
+  font-weight: 500;
+}
+
+.emerald-portfolio .test-card:hover .test-info h4 {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.emerald-portfolio .test-stars {
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  letter-spacing: 5px;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
+  position: relative;
+  z-index: 1;
+  transition:
+    letter-spacing var(--t-card) ease-in-out,
+    transform var(--t-card) var(--ease-card),
+    filter var(--t-card) ease-in-out,
+    color var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .test-card:hover .test-stars {
+  letter-spacing: 6px;
+  transform: translateX(2px);
+  color: #fff;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.28));
+}
+
+.emerald-portfolio .test-text {
+  font-family: var(--inst);
+  font-size: 0.92rem;
+  color: rgba(232, 255, 244, 0.78);
+  line-height: 1.72;
+  letter-spacing: 0.01em;
+  margin-bottom: 24px;
+  font-weight: 400;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+.emerald-portfolio .test-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.emerald-portfolio .test-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald), var(--cyan));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--syne);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--bg);
+  flex-shrink: 0;
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .test-card:hover .test-avatar {
+  transform: scale(1.08) rotate(-8deg);
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.35);
+}
+
+.emerald-portfolio .test-info h4 {
+  font-family: var(--syne);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.emerald-portfolio .test-info span {
+  font-family: var(--fira);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  color: rgba(160, 170, 168, 0.72);
+}
+
+.emerald-portfolio #cta {
+  padding: 140px 24px;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.emerald-portfolio #cta::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--emerald));
+}
+
+.emerald-portfolio .cta-title {
+  font-family: var(--syne);
+  font-weight: 700;
+  font-size: clamp(3rem, 7vw, 7rem);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  margin-bottom: 32px;
+  background: linear-gradient(160deg, #fff 0%, var(--emerald) 60%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio .cta-sub {
+  font-family: var(--inst);
+  font-size: 1.05rem;
+  color: var(--text-d);
+  max-width: 440px;
+  margin: 0 auto 48px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+.emerald-portfolio .cta-acts {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.emerald-portfolio .cta-contact {
+  font-family: var(--fira);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  color: var(--text-g);
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emerald-portfolio .cta-contact::before,
+.emerald-portfolio .cta-contact::after {
+  content: "";
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: var(--border);
+}
+
+.emerald-portfolio footer {
+  padding: 48px 56px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.emerald-portfolio .ft-logo {
+  font-family: var(--syne);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emerald-portfolio footer p {
+  font-family: var(--fira);
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-g);
+}
+
+.emerald-portfolio .ft-links {
+  display: flex;
+  gap: 20px;
+}
+
+.emerald-portfolio .ft-links a {
+  font-family: var(--fira);
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-g);
+  text-decoration: none;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.emerald-portfolio .ft-links a:hover {
+  color: var(--emerald);
+  text-shadow: 0 0 16px rgba(0, 255, 136, 0.2);
+}
+
+.emerald-portfolio .reveal {
+  opacity: 0;
+  transform: translateY(32px);
+}
+
+/* ── VISITOR REVIEWS ── */
+.emerald-portfolio .reviews-section {
+  padding-bottom: 100px;
+}
+
+.emerald-portfolio .reviews-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.75fr);
+  gap: 48px;
+  align-items: start;
+  margin-bottom: 64px;
+}
+
+.emerald-portfolio .reviews-form-card {
+  background: var(--card-glass-tint), rgba(14, 18, 17, 0.52);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-edge);
+  border-radius: var(--card-radius-lg);
+  padding: 32px 28px;
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.04);
+  transform-style: preserve-3d;
+  transition:
+    transform var(--t-card) var(--ease-card),
+    border-color var(--t-card) ease-in-out,
+    box-shadow var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .reviews-form-card:hover {
+  transform: translateY(-5px) perspective(1000px) rotateX(2deg);
+  border-color: var(--card-edge-hover);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald), var(--card-glow-blue);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.05);
+}
+
+.emerald-portfolio .reviews-form-card:focus-within {
+  border-color: rgba(0, 255, 136, 0.32);
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 136, 0.12) inset,
+    0 22px 52px rgba(0, 0, 0, 0.38),
+    var(--card-glow-emerald),
+    0 0 40px rgba(79, 158, 255, 0.1);
+}
+
+.emerald-portfolio .reviews-form-title {
+  font-family: var(--syne);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.emerald-portfolio .reviews-form-lead {
+  font-family: var(--inst);
+  font-size: 0.82rem;
+  color: var(--text-d);
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  margin-bottom: 24px;
+}
+
+.emerald-portfolio .reviews-form-banner {
+  font-family: var(--inst);
+  font-size: 0.8rem;
+  padding: 10px 14px;
+  border-radius: 2px;
+  margin-bottom: 18px;
+}
+
+.emerald-portfolio .reviews-form-banner--error {
+  background: rgba(255, 80, 80, 0.08);
+  border: 1px solid rgba(255, 120, 120, 0.25);
+  color: #ffb4b4;
+}
+
+.emerald-portfolio .reviews-form-banner--ok {
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  color: var(--emerald);
+}
+
+.emerald-portfolio .reviews-field {
+  margin-bottom: 22px;
+}
+
+.emerald-portfolio .reviews-label {
+  display: block;
+  font-family: var(--fira);
+  font-size: 0.54rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-g);
+  margin-bottom: 8px;
+}
+
+.emerald-portfolio .reviews-input,
+.emerald-portfolio .reviews-textarea {
+  width: 100%;
+  font-family: var(--inst);
+  font-size: 0.92rem;
+  color: var(--text);
+  background: rgba(2, 11, 8, 0.65);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 14px;
+  outline: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.emerald-portfolio .reviews-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.65;
+}
+
+.emerald-portfolio .reviews-input::placeholder,
+.emerald-portfolio .reviews-textarea::placeholder {
+  color: var(--text-g);
+}
+
+.emerald-portfolio .reviews-input:focus,
+.emerald-portfolio .reviews-textarea:focus {
+  border-color: rgba(0, 255, 136, 0.35);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+}
+
+.emerald-portfolio .reviews-input--error,
+.emerald-portfolio .reviews-textarea.reviews-input--error {
+  border-color: rgba(255, 120, 120, 0.45);
+}
+
+.emerald-portfolio .reviews-field-error {
+  font-family: var(--inst);
+  font-size: 0.78rem;
+  color: #ff9a9a;
+  margin-top: 8px;
+}
+
+.emerald-portfolio .reviews-textarea-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.emerald-portfolio .reviews-char-count {
+  font-family: var(--fira);
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  color: var(--text-g);
+  flex-shrink: 0;
+}
+
+.emerald-portfolio .reviews-stars {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.emerald-portfolio .reviews-star-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: rgba(232, 255, 244, 0.22);
+  background: rgba(0, 255, 136, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.emerald-portfolio .reviews-star-btn:hover,
+.emerald-portfolio .reviews-star-btn:focus-visible {
+  color: rgba(0, 255, 136, 0.85);
+  border-color: rgba(0, 255, 136, 0.35);
+  background: rgba(0, 255, 136, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 255, 136, 0.1);
+}
+
+.emerald-portfolio .reviews-star-btn.is-active {
+  color: var(--emerald);
+  border-color: rgba(0, 255, 136, 0.4);
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.emerald-portfolio .reviews-stars-hint {
+  font-family: var(--fira);
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-g);
+  margin-top: 10px;
+}
+
+.emerald-portfolio .reviews-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.emerald-portfolio .reviews-submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
+.emerald-portfolio .reviews-aside-card {
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-edge);
+  padding: 28px 24px;
+  border-radius: var(--card-radius-lg);
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.03);
+  transform-style: preserve-3d;
+  transition:
+    transform var(--t-card) var(--ease-card),
+    border-color var(--t-card) ease-in-out,
+    box-shadow var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .reviews-aside-card:hover {
+  transform: translateY(-4px) perspective(1000px) rotateX(2deg);
+  border-color: var(--card-edge-hover);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-blue);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.07);
+}
+
+.emerald-portfolio .reviews-aside-kicker {
+  font-family: var(--fira);
+  font-size: 0.54rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+
+.emerald-portfolio .reviews-aside-text {
+  font-family: var(--inst);
+  font-size: 0.88rem;
+  color: var(--text-d);
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+.emerald-portfolio .reviews-list-title {
+  font-family: var(--syne);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 22px;
+}
+
+.emerald-portfolio .reviews-empty {
+  font-family: var(--inst);
+  font-size: 0.9rem;
+  color: var(--text-d);
+  padding: 28px 0;
+}
+
+.emerald-portfolio .reviews-user-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  perspective: 1000px;
+}
+
+.emerald-portfolio .user-review-card {
+  border-radius: var(--card-radius-lg) var(--card-radius) var(--card-radius-lg) var(--card-radius);
+  background: var(--card-glass-tint), rgba(14, 18, 17, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-edge);
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.03);
+  transition:
+    transform var(--t-card) var(--ease-card),
+    box-shadow var(--t-card) ease-in-out,
+    border-color var(--t-card) ease-in-out,
+    background var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .user-review-card:hover {
+  border-color: var(--card-edge-hover);
+  background: var(--card-glass-tint), rgba(0, 255, 136, 0.06);
+  transform: translateY(-8px) scale(1.02) perspective(960px) rotateX(3deg) rotateY(-1deg);
+  box-shadow: var(--card-shadow-hover), var(--card-glow-emerald), var(--card-glow-blue);
+}
+
+.emerald-portfolio .user-review-card.is-new {
+  animation: reviewCardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes reviewCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.emerald-portfolio .user-review-stars {
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  color: var(--emerald);
+  margin-bottom: 14px;
+}
+
+.emerald-portfolio .user-review-text {
+  font-family: var(--inst);
+  font-size: 0.88rem;
+  color: var(--text-d);
+  line-height: 1.72;
+  letter-spacing: 0.01em;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.emerald-portfolio .user-review-card:hover .user-review-text {
+  color: rgba(232, 255, 244, 0.88);
+}
+
+.emerald-portfolio .user-review-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emerald-portfolio .user-review-meta {
+  min-width: 0;
+}
+
+.emerald-portfolio .user-review-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald), var(--cyan));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--syne);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--bg);
+  flex-shrink: 0;
+  transition: transform var(--t-card) var(--ease-card), box-shadow var(--t-card) ease-in-out;
+}
+
+.emerald-portfolio .user-review-card:hover .user-review-avatar {
+  transform: scale(1.08) rotate(6deg);
+  box-shadow: 0 0 22px rgba(0, 255, 136, 0.35);
+}
+
+.emerald-portfolio .user-review-name {
+  font-family: var(--syne);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.emerald-portfolio .user-review-date {
+  font-family: var(--fira);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  color: var(--text-g);
+  text-transform: uppercase;
+}
+
+@media (max-width: 960px) {
+  .emerald-portfolio nav {
+    padding: 18px 24px;
+  }
+
+  .emerald-portfolio .n-links {
+    display: none;
+  }
+
+  .emerald-portfolio .section {
+    padding: 90px 24px;
+  }
+
+  .emerald-portfolio #work .proj-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emerald-portfolio #about .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emerald-portfolio .skills-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .emerald-portfolio #social .test-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emerald-portfolio .reviews-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .emerald-portfolio .reviews-user-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emerald-portfolio footer {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .emerald-portfolio .h-acts {
+    flex-direction: column;
+  }
+
+  .emerald-portfolio .h-stats {
+    gap: 28px;
+  }
+
+  .emerald-portfolio .skills-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emerald-portfolio .mq-track {
+    animation: none;
+  }
+
+  .emerald-portfolio .project-card,
+  .emerald-portfolio .skill-card,
+  .emerald-portfolio .test-card,
+  .emerald-portfolio .tl-item,
+  .emerald-portfolio .h-stat,
+  .emerald-portfolio .status-chip,
+  .emerald-portfolio .reviews-form-card,
+  .emerald-portfolio .reviews-aside-card,
+  .emerald-portfolio .user-review-card,
+  .emerald-portfolio .test-stars,
+  .emerald-portfolio .test-avatar,
+  .emerald-portfolio .user-review-avatar,
+  .emerald-portfolio .btn-p,
+  .emerald-portfolio .btn-o,
+  .emerald-portfolio .btn-whatsapp,
+  .emerald-portfolio .n-cta,
+  .emerald-portfolio .proj-link {
+    transition-duration: 0.01ms !important;
+  }
+
+  .emerald-portfolio .project-card:hover,
+  .emerald-portfolio .skill-card:hover,
+  .emerald-portfolio .test-card:hover,
+  .emerald-portfolio .tl-item:hover,
+  .emerald-portfolio .h-stat:hover,
+  .emerald-portfolio .status-chip:hover,
+  .emerald-portfolio .reviews-form-card:hover,
+  .emerald-portfolio .reviews-aside-card:hover,
+  .emerald-portfolio .user-review-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .emerald-portfolio .h-stat:hover {
+    border-color: var(--card-edge);
+    background: var(--card-glass-tint), rgba(14, 18, 17, 0.55);
+  }
+
+  .emerald-portfolio .status-chip:hover {
+    border-color: var(--card-edge);
+    background: var(--card-glass-tint), rgba(0, 255, 136, 0.06);
+  }
+
+  .emerald-portfolio .reviews-form-card:hover {
+    border-color: var(--card-edge);
+    background: var(--card-glass-tint), rgba(14, 18, 17, 0.52);
+  }
+
+  .emerald-portfolio .reviews-aside-card:hover {
+    border-color: var(--card-edge);
+    background: var(--card-glass-tint), rgba(0, 255, 136, 0.05);
+  }
+
+  .emerald-portfolio .user-review-card:hover {
+    border-color: var(--card-edge);
+    background: var(--card-glass-tint), rgba(14, 18, 17, 0.52);
+  }
+
+  .emerald-portfolio .h-stat:hover .h-stat-num {
+    transform: none;
+    filter: none;
+  }
+
+  .emerald-portfolio .test-card:hover .test-stars {
+    letter-spacing: 5px;
+    transform: none;
+    filter: none;
+  }
+
+  .emerald-portfolio .test-card:hover .test-avatar {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .emerald-portfolio .user-review-card:hover .user-review-avatar {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .emerald-portfolio .status-chip:hover .chip-icon {
+    transform: none;
+    filter: none;
+  }
+
+  .emerald-portfolio .scroll-ind .s-line {
+    animation: none;
+  }
+
+  .emerald-portfolio .status-chip::before {
+    animation: none;
+  }
+
+  .emerald-portfolio .user-review-card.is-new {
+    animation: none;
+  }
+
+  .emerald-portfolio .btn-p:hover,
+  .emerald-portfolio .btn-o:hover,
+  .emerald-portfolio .btn-whatsapp:hover,
+  .emerald-portfolio .n-cta:hover {
+    transform: none;
+    filter: none;
+  }
+
+  .emerald-portfolio .btn-p:hover::before {
+    transform: translateX(-100%);
+  }
+
+  .emerald-portfolio .btn-p:hover .btn-p-txt,
+  .emerald-portfolio .btn-p:hover .btn-p-chev,
+  .emerald-portfolio .btn-p:hover .btn-p-ico,
+  .emerald-portfolio .btn-o:hover .btn-o-txt {
+    transform: none;
+  }
+
+  .emerald-portfolio .n-cta:hover .n-cta-ico {
+    transform: none;
+  }
+
+  .emerald-portfolio .project-card:hover .proj-icon,
+  .emerald-portfolio .project-card:hover .proj-icon-img,
+  .emerald-portfolio .skill-card:hover .skill-icon {
+    transform: none;
+    filter: none;
+  }
+}
