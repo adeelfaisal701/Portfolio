@@ -1,17 +1,25 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { MAX_STORED_REVIEWS } from "@/app/lib/reviews-constants";
+
+const REVIEWS_API_BASE_RAW =
+  typeof process.env.NEXT_PUBLIC_REVIEWS_API_URL === "string"
+    ? process.env.NEXT_PUBLIC_REVIEWS_API_URL.trim()
+    : "";
+const REVIEWS_API_BASE = REVIEWS_API_BASE_RAW.replace(/\/$/, "");
+
+const reviewsEndpoint = REVIEWS_API_BASE ? `${REVIEWS_API_BASE}/reviews` : "/api/reviews";
+import { dbRowToStored, type ReviewDbRow } from "@/app/lib/review-db-mapper";
 import {
-  createReview,
-  loadReviews,
   MAX_REVIEW_MESSAGE_LENGTH,
   MAX_REVIEW_NAME_LENGTH,
   MAX_STARS,
   MIN_STARS,
-  saveReviews,
   type StoredReview,
 } from "@/app/lib/reviews-storage";
+import { createBrowserSupabaseClient } from "@/app/lib/supabase-browser";
 
 type FieldErrors = {
   name?: string;
@@ -32,8 +40,24 @@ function formatStars(n: number): string {
   return "★".repeat(s) + "☆".repeat(MAX_STARS - s);
 }
 
+/** Defer past React commit + Next router work; sync refresh during updates can worsen E668 races in dev. */
+function scheduleScrollTriggerRefresh() {
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh();
+  });
+}
+
+/** Backup polling when Realtime is healthy (catches missed events). */
+const POLL_MS_REALTIME_OK = 120_000;
+/** Faster polling when Realtime is unavailable or anon key missing. */
+const POLL_MS_FALLBACK = 25_000;
+
 export default function ReviewsSection() {
   const [reviews, setReviews] = useState<StoredReview[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [realtimeActive, setRealtimeActive] = useState(false);
+  const realtimeDismissedRef = useRef(false);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [stars, setStars] = useState<number>(0);
@@ -43,9 +67,114 @@ export default function ReviewsSection() {
   const [successFlash, setSuccessFlash] = useState(false);
   const [newestId, setNewestId] = useState<string | null>(null);
 
-  useLayoutEffect(() => {
-    setReviews(loadReviews());
+  const fetchReviews = useCallback(async () => {
+    setLoadError(null);
+    try {
+      const res = await fetch(reviewsEndpoint, { cache: "no-store" });
+      if (res.status === 503) {
+        setLoadError(
+          REVIEWS_API_BASE
+            ? "Reviews API is unavailable. Ensure the Express server is running and MONGODB_URI is set."
+            : "Reviews are not available yet. Configure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (and NEXT_PUBLIC_SUPABASE_ANON_KEY for live updates).",
+        );
+        setReviews([]);
+        return;
+      }
+      if (!res.ok) {
+        setLoadError("Could not load reviews. Please try again later.");
+        setReviews([]);
+        return;
+      }
+      const data = (await res.json()) as { reviews?: StoredReview[] };
+      setReviews(Array.isArray(data.reviews) ? data.reviews : []);
+    } catch {
+      setLoadError("Could not load reviews. Please check your connection.");
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchReviews();
+  }, [fetchReviews]);
+
+  useEffect(() => {
+    /* Mongo/Express reviews: no Supabase Realtime (avoids CHANNEL_ERROR + duplicate GoTrue clients). */
+    if (REVIEWS_API_BASE) {
+      setRealtimeActive(false);
+      return;
+    }
+
+    const supabase = createBrowserSupabaseClient();
+    if (!supabase) {
+      setRealtimeActive(false);
+      return;
+    }
+
+    realtimeDismissedRef.current = false;
+
+    const channel = supabase
+      .channel("reviews_public_inserts")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "reviews",
+        },
+        (payload) => {
+          const row = payload.new as ReviewDbRow;
+          const review = dbRowToStored(row);
+          if (!review) return;
+          setReviews((prev) => {
+            if (prev.some((r) => r.id === review.id)) return prev;
+            return [review, ...prev].slice(0, MAX_STORED_REVIEWS);
+          });
+          setNewestId(review.id);
+          window.setTimeout(() => setNewestId(null), 700);
+          scheduleScrollTriggerRefresh();
+        },
+      )
+      .subscribe((status, err) => {
+        if (realtimeDismissedRef.current) return;
+        if (status === "SUBSCRIBED") {
+          setRealtimeActive(true);
+          return;
+        }
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          if (process.env.NODE_ENV === "development") {
+            console.warn("[reviews realtime]", status, err?.message ?? "");
+          }
+          setRealtimeActive(false);
+        }
+      });
+
+    return () => {
+      realtimeDismissedRef.current = true;
+      setRealtimeActive(false);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const pollMs =
+      REVIEWS_API_BASE ? POLL_MS_FALLBACK : realtimeActive ? POLL_MS_REALTIME_OK : POLL_MS_FALLBACK;
+    const id = window.setInterval(() => {
+      void fetchReviews();
+    }, pollMs);
+    const onWindowFocus = () => void fetchReviews();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void fetchReviews();
+    };
+    window.addEventListener("focus", onWindowFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("focus", onWindowFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [fetchReviews, realtimeActive]);
 
   const displayStars = hoverStars ?? (stars || 0);
 
@@ -76,14 +205,49 @@ export default function ReviewsSection() {
     setSubmitting(true);
     setErrors({});
 
-    await new Promise((r) => window.setTimeout(r, 450));
-
     try {
-      const review = createReview({ name, message, stars });
+      const res = await fetch(reviewsEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          message: message.trim(),
+          stars,
+        }),
+      });
+
+      const payload = (await res.json().catch(() => ({}))) as {
+        review?: StoredReview;
+        errors?: FieldErrors;
+        error?: string;
+        retryAfterSec?: number;
+      };
+
+      if (res.status === 429) {
+        const wait = payload.retryAfterSec ? ` Try again in about ${payload.retryAfterSec}s.` : "";
+        setErrors({ form: (payload.error ?? "Too many submissions from this network.") + wait });
+        return;
+      }
+
+      if (res.status === 400 && payload.errors) {
+        setErrors({
+          name: payload.errors.name,
+          message: payload.errors.message,
+          stars: payload.errors.stars,
+          form: payload.errors.form,
+        });
+        return;
+      }
+
+      if (!res.ok || !payload.review) {
+        setErrors({ form: payload.error ?? "Something went wrong. Please try again." });
+        return;
+      }
+
+      const review = payload.review;
       setReviews((prev) => {
-        const next = [review, ...prev];
-        saveReviews(next);
-        return next;
+        const withoutDup = prev.filter((r) => r.id !== review.id);
+        return [review, ...withoutDup].slice(0, MAX_STORED_REVIEWS);
       });
       setNewestId(review.id);
       window.setTimeout(() => setNewestId(null), 700);
@@ -93,7 +257,7 @@ export default function ReviewsSection() {
       setHoverStars(null);
       setSuccessFlash(true);
       window.setTimeout(() => setSuccessFlash(false), 3200);
-      ScrollTrigger.refresh();
+      scheduleScrollTriggerRefresh();
     } catch {
       setErrors({ form: "Something went wrong. Please try again." });
     } finally {
@@ -118,8 +282,8 @@ export default function ReviewsSection() {
         <form className="reviews-form-card" onSubmit={handleSubmit} noValidate>
           <h3 className="reviews-form-title">Share your feedback</h3>
           <p className="reviews-form-lead">
-            Ratings and comments are stored on your device only and appear here for your session. Up to 50
-            reviews are kept locally.
+            Reviews are public and visible to everyone. They are stored securely on the server and shared across
+            all visitors.
           </p>
 
           {errors.form ? (
@@ -245,8 +409,8 @@ export default function ReviewsSection() {
           <div className="reviews-aside-card">
             <p className="reviews-aside-kicker">Trust</p>
             <p className="reviews-aside-text">
-              Honest feedback helps visitors decide quickly. You can clear stored reviews anytime from your
-              browser site data settings.
+              Honest feedback helps visitors decide quickly. Public reviews help others see real experiences with
+              this portfolio.
             </p>
           </div>
         </aside>
@@ -254,7 +418,15 @@ export default function ReviewsSection() {
 
       <div className="reviews-list-wrap reveal">
         <h3 className="reviews-list-title">Visitor reviews</h3>
-        {reviews.length === 0 ? (
+        {loadError ? (
+          <p className="reviews-empty" role="alert">
+            {loadError}
+          </p>
+        ) : loading ? (
+          <p className="reviews-empty" aria-live="polite">
+            Loading reviews…
+          </p>
+        ) : reviews.length === 0 ? (
           <p className="reviews-empty">No reviews yet — be the first to share feedback.</p>
         ) : (
           <div className="reviews-user-grid">

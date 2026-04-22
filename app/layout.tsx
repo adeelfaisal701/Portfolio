@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fira_Code, Inter, Space_Grotesk } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import "./emerald-portfolio.css";
 
@@ -37,7 +38,9 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${inter.variable} ${firaCode.variable} h-full scroll-smooth`}
     >
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <Suspense fallback={null}>{children}</Suspense>
+      </body>
     </html>
   );
 }

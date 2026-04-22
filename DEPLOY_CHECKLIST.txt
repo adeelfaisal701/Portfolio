@@ -1,0 +1,14 @@
+Portfolio reviews — manual steps you complete outside the repo
+
+[ ] Replace placeholders in .env.local (npm run verify:reviews-env must exit 0 before production).
+[ ] Supabase: create/open project; copy URL, anon key, service_role from Settings → API into .env.local and Vercel.
+[ ] Supabase SQL Editor: run migrations in order (see supabase/README.txt).
+[ ] Local: npm run verify:reviews-env (must pass after real keys).
+[ ] Local: npm run dev → npm run smoke:reviews-api (expect 201 POST if DB + env OK).
+[ ] Cross-browser: incognito vs normal profile on localhost — same review list.
+[ ] Optional realtime: two tabs; submit in one; other updates without refresh (or wait for poll/focus).
+[ ] Vercel: add same three env vars; redeploy.
+[ ] Production URL: repeat cross-browser test.
+
+If GET/POST returns 503: fix NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY on that environment.
+If empty reviews: wrong Supabase project or migrations not applied there.
