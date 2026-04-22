@@ -8,8 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "verify:reviews-env": "node scripts/verify-reviews-env.mjs",
-    "smoke:reviews-api": "node scripts/smoke-reviews-api.mjs",
-    "dev:reviews-api": "npm run dev --prefix backend",
     "process:ecommerce-image": "node scripts/remove-ecommerce-bg.cjs",
     "process:ai-analytics-image": "node scripts/remove-ai-dashboard-vector-bg.cjs",
     "process:fullstack-image": "node scripts/remove-fullstack-bg.cjs"
@@ -17,7 +15,6 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.104.0",
     "gsap": "^3.15.0",
-    "mongoose": "^9.5.0",
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Validates that .env.local defines review-related Supabase vars and that values
- * are not left as placeholders from .env.example.
+ * Validates .env.local for browser-only Supabase reviews (NEXT_PUBLIC_* anon key).
  */
 
 import fs from "node:fs";
@@ -13,17 +12,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 const envLocal = path.join(root, ".env.local");
 
-const REQUIRED = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
-];
+const REQUIRED = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"];
 
-const PLACEHOLDER_HINTS = [
-  "YOUR_PROJECT_REF",
-  "your_anon_public_key_here",
-  "your_service_role_key_here",
-];
+const PLACEHOLDER_HINTS = ["YOUR_PROJECT_REF", "your_anon_public_key_here", "your_service_role_key_here"];
 
 function parseDotenv(content) {
   /** @type {Record<string, string>} */
@@ -45,7 +36,7 @@ function parseDotenv(content) {
 
 function main() {
   if (!fs.existsSync(envLocal)) {
-    console.error("Missing .env.local — copy .env.example to .env.local and fill Supabase keys.");
+    console.error("Missing .env.local — add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
     process.exit(1);
   }
 
@@ -76,7 +67,7 @@ function main() {
     process.exit(1);
   }
 
-  console.log("Reviews env check passed: NEXT_PUBLIC_SUPABASE_URL, anon key, and service_role are set (non-placeholder).");
+  console.log("Reviews env check passed: NEXT_PUBLIC_SUPABASE_URL and anon key are set (non-placeholder).");
   process.exit(0);
 }
 

@@ -29,7 +29,6 @@ function StarRow({ value }: { value: number }) {
 }
 
 export default function ReviewsPage() {
-  const supabase = useRef(createSupabaseClient());
   const lastSubmitRef = useRef(0);
 
   const [reviews, setReviews] = useState<StoredReview[]>([]);
@@ -47,7 +46,7 @@ export default function ReviewsPage() {
   );
 
   const loadReviews = useCallback(async () => {
-    const client = supabase.current;
+    const client = createSupabaseClient();
     if (!client) {
       setError("Missing Supabase env: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local.");
       setReviews([]);
@@ -82,7 +81,7 @@ export default function ReviewsPage() {
   }, [loadReviews]);
 
   useEffect(() => {
-    const client = supabase.current;
+    const client = createSupabaseClient();
     if (!client) return;
 
     const channel = client
@@ -120,7 +119,7 @@ export default function ReviewsPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const client = supabase.current;
+    const client = createSupabaseClient();
     if (!client) {
       setFieldErrors({ form: "Supabase is not configured in the browser." });
       return;
@@ -174,7 +173,7 @@ export default function ReviewsPage() {
   }
 
   const displayRating = hover ?? rating;
-  const misconfigured = supabase.current === null;
+  const misconfigured = createSupabaseClient() === null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">

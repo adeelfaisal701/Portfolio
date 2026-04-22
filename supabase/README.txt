@@ -1,28 +1,21 @@
-Supabase reviews setup (SQL Editor → New query → Run)
+Supabase reviews (browser-only, no custom API)
 
-Apply migrations in order:
-
-1. migrations/20260416120000_reviews.sql — creates table public.reviews (legacy columns message/stars).
-2. migrations/20260421140000_reviews_realtime.sql — adds reviews to Realtime publication.
-3. migrations/20260422140000_reviews_review_rating_public_rls.sql — renames columns to review/rating,
-   removes approval column, enables public SELECT + INSERT for anon (matches full-stack anon-only UI).
-
-Environment (.env.local in repo root):
+Reviews are loaded and saved from the React app using the public anon key only.
+Set in project root .env.local (then restart `npm run dev`):
 
   NEXT_PUBLIC_SUPABASE_URL=https://YOUR_REF.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 
-Never put SUPABASE_SERVICE_ROLE_KEY in frontend code or NEXT_PUBLIC_* variables.
-The service role may still be used only in Next.js Route Handlers (server) at app/api/reviews/route.ts.
+Do not use SUPABASE_SERVICE_ROLE_KEY in the client or in NEXT_PUBLIC_*.
+The optional route at /reviews and the home page reviews section use lib/supabaseClient.ts.
 
-Standalone reviews UI (anon key only): open http://localhost:3000/reviews after migration (3).
+Run SQL in this order in Supabase → SQL Editor:
 
-Portfolio home still uses the embedded ReviewsSection; configure the same env vars.
+1. migrations/20260416120000_reviews.sql  (or start from a table with name, review, rating, created_at)
+2. migrations/20260421140000_reviews_realtime.sql
+3. migrations/20260422140000_reviews_review_rating_public_rls.sql
 
-Verify & smoke:
+This gives public.reviews with RLS: anyone can SELECT and INSERT; no UPDATE/DELETE policies.
+Enable Realtime on the table (step 2) for live updates.
 
-  npm run verify:reviews-env
-  npm run dev
-  npm run smoke:reviews-api
-
-Optional: MongoDB reviews API — see backend/ and NEXT_PUBLIC_REVIEWS_API_URL.
+Validate local env:  npm run verify:reviews-env

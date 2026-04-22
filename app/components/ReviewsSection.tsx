@@ -4,13 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MAX_STORED_REVIEWS } from "@/app/lib/reviews-constants";
 
-const REVIEWS_API_BASE_RAW =
-  typeof process.env.NEXT_PUBLIC_REVIEWS_API_URL === "string"
-    ? process.env.NEXT_PUBLIC_REVIEWS_API_URL.trim()
-    : "";
-const REVIEWS_API_BASE = REVIEWS_API_BASE_RAW.replace(/\/$/, "");
-
-const reviewsEndpoint = REVIEWS_API_BASE ? `${REVIEWS_API_BASE}/reviews` : "/api/reviews";
 import { dbRowToStored, type ReviewDbRow } from "@/app/lib/review-db-mapper";
 import {
   MAX_REVIEW_MESSAGE_LENGTH,
@@ -19,7 +12,14 @@ import {
   MIN_STARS,
   type StoredReview,
 } from "@/app/lib/reviews-storage";
-import { createBrowserSupabaseClient } from "@/app/lib/supabase-browser";
+import { createSupabaseClient } from "@/lib/supabaseClient";
+
+/** Polling interval when Realtime subscription is healthy (sparse refresh). */
+const POLL_MS_REALTIME_OK = 45_000;
+/** Polling when Realtime is down or unsubscribed (~5–10s). */
+const POLL_MS_FALLBACK = 8_000;
+/** Minimum gap between successful submits (spam guard). */
+const SUBMIT_COOLDOWN_MS = 1_600;
 
 type FieldErrors = {
   name?: string;
@@ -47,17 +47,14 @@ function scheduleScrollTriggerRefresh() {
   });
 }
 
-/** Backup polling when Realtime is healthy (catches missed events). */
-const POLL_MS_REALTIME_OK = 120_000;
-/** Faster polling when Realtime is unavailable or anon key missing. */
-const POLL_MS_FALLBACK = 25_000;
-
 export default function ReviewsSection() {
   const [reviews, setReviews] = useState<StoredReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [realtimeActive, setRealtimeActive] = useState(false);
   const realtimeDismissedRef = useRef(false);
+  const lastSubmitOkAt = useRef(0);
+
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [stars, setStars] = useState<number>(0);
@@ -69,24 +66,36 @@ export default function ReviewsSection() {
 
   const fetchReviews = useCallback(async () => {
     setLoadError(null);
+    const client = createSupabaseClient();
+    if (!client) {
+      setLoadError(
+        "Reviews are not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local.",
+      );
+      setReviews([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch(reviewsEndpoint, { cache: "no-store" });
-      if (res.status === 503) {
-        setLoadError(
-          REVIEWS_API_BASE
-            ? "Reviews API is unavailable. Ensure the Express server is running and MONGODB_URI is set."
-            : "Reviews are not configured. Add MONGODB_URI to .env.local for MongoDB Atlas, or configure Supabase (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY).",
-        );
+      const { data, error } = await client
+        .from("reviews")
+        .select("id,name,review,rating,created_at")
+        .order("created_at", { ascending: false })
+        .limit(MAX_STORED_REVIEWS);
+
+      if (error) {
+        console.error("[reviews fetch]", error.message);
+        const hint =
+          error.message.includes("column") && error.message.includes("exist")
+            ? " Run Supabase migrations (review/rating columns)."
+            : "";
+        setLoadError(`Could not load reviews.${hint}`);
         setReviews([]);
         return;
       }
-      if (!res.ok) {
-        setLoadError("Could not load reviews. Please try again later.");
-        setReviews([]);
-        return;
-      }
-      const data = (await res.json()) as { reviews?: StoredReview[] };
-      setReviews(Array.isArray(data.reviews) ? data.reviews : []);
+
+      const rows = (data ?? []) as ReviewDbRow[];
+      setReviews(rows.map((r) => dbRowToStored(r)).filter((r): r is StoredReview => r !== null));
     } catch {
       setLoadError("Could not load reviews. Please check your connection.");
       setReviews([]);
@@ -100,21 +109,15 @@ export default function ReviewsSection() {
   }, [fetchReviews]);
 
   useEffect(() => {
-    /* Mongo/Express reviews: no Supabase Realtime (avoids CHANNEL_ERROR + duplicate GoTrue clients). */
-    if (REVIEWS_API_BASE) {
-      setRealtimeActive(false);
-      return;
-    }
-
-    const supabase = createBrowserSupabaseClient();
-    if (!supabase) {
+    const client = createSupabaseClient();
+    if (!client) {
       setRealtimeActive(false);
       return;
     }
 
     realtimeDismissedRef.current = false;
 
-    const channel = supabase
+    const channel = client
       .channel("reviews_public_inserts")
       .on(
         "postgres_changes",
@@ -153,13 +156,12 @@ export default function ReviewsSection() {
     return () => {
       realtimeDismissedRef.current = true;
       setRealtimeActive(false);
-      void supabase.removeChannel(channel);
+      void client.removeChannel(channel);
     };
   }, []);
 
   useEffect(() => {
-    const pollMs =
-      REVIEWS_API_BASE ? POLL_MS_FALLBACK : realtimeActive ? POLL_MS_REALTIME_OK : POLL_MS_FALLBACK;
+    const pollMs = realtimeActive ? POLL_MS_REALTIME_OK : POLL_MS_FALLBACK;
     const id = window.setInterval(() => {
       void fetchReviews();
     }, pollMs);
@@ -202,54 +204,62 @@ export default function ReviewsSection() {
     e.preventDefault();
     if (!validate()) return;
 
+    const client = createSupabaseClient();
+    if (!client) {
+      setErrors({
+        form: "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      });
+      return;
+    }
+
+    const now = Date.now();
+    if (lastSubmitOkAt.current > 0 && now - lastSubmitOkAt.current < SUBMIT_COOLDOWN_MS) {
+      setErrors({ form: "Please wait a moment before submitting again." });
+      return;
+    }
+
     setSubmitting(true);
     setErrors({});
 
     try {
-      const res = await fetch(reviewsEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          message: message.trim(),
-          stars,
-        }),
-      });
+      const trimmedName = name.trim();
+      const trimmedMsg = message.trim();
 
-      const payload = (await res.json().catch(() => ({}))) as {
-        review?: StoredReview;
-        errors?: FieldErrors;
-        error?: string;
-        retryAfterSec?: number;
-      };
+      const { data, error } = await client
+        .from("reviews")
+        .insert({
+          name: trimmedName,
+          review: trimmedMsg,
+          rating: stars,
+        })
+        .select("id,name,review,rating,created_at")
+        .single();
 
-      if (res.status === 429) {
-        const wait = payload.retryAfterSec ? ` Try again in about ${payload.retryAfterSec}s.` : "";
-        setErrors({ form: (payload.error ?? "Too many submissions from this network.") + wait });
+      if (error) {
+        let form =
+          error.message ||
+          "Could not save your review.";
+        if (error.code === "42501" || form.toLowerCase().includes("row-level security")) {
+          form =
+            "Could not save — check Supabase RLS allows INSERT on public.reviews for anon (see supabase/README.txt).";
+        }
+        setErrors({ form });
         return;
       }
 
-      if (res.status === 400 && payload.errors) {
-        setErrors({
-          name: payload.errors.name,
-          message: payload.errors.message,
-          stars: payload.errors.stars,
-          form: payload.errors.form,
-        });
+      const inserted = dbRowToStored(data as ReviewDbRow);
+      if (!inserted) {
+        setErrors({ form: "Could not save your review." });
         return;
       }
 
-      if (!res.ok || !payload.review) {
-        setErrors({ form: payload.error ?? "Something went wrong. Please try again." });
-        return;
-      }
+      lastSubmitOkAt.current = Date.now();
 
-      const review = payload.review;
       setReviews((prev) => {
-        const withoutDup = prev.filter((r) => r.id !== review.id);
-        return [review, ...withoutDup].slice(0, MAX_STORED_REVIEWS);
+        const withoutDup = prev.filter((r) => r.id !== inserted.id);
+        return [inserted, ...withoutDup].slice(0, MAX_STORED_REVIEWS);
       });
-      setNewestId(review.id);
+      setNewestId(inserted.id);
       window.setTimeout(() => setNewestId(null), 700);
       setName("");
       setMessage("");
@@ -282,8 +292,7 @@ export default function ReviewsSection() {
         <form className="reviews-form-card" onSubmit={handleSubmit} noValidate>
           <h3 className="reviews-form-title">Share your feedback</h3>
           <p className="reviews-form-lead">
-            Reviews are public and visible to everyone. They are stored securely on the server and shared across
-            all visitors.
+            Reviews are public and visible to everyone. They are saved in Supabase and shared across all visitors.
           </p>
 
           {errors.form ? (
