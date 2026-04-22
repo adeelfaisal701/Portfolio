@@ -75,7 +75,7 @@ export default function ReviewsSection() {
         setLoadError(
           REVIEWS_API_BASE
             ? "Reviews API is unavailable. Ensure the Express server is running and MONGODB_URI is set."
-            : "Reviews are not available yet. Configure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (and NEXT_PUBLIC_SUPABASE_ANON_KEY for live updates).",
+            : "Reviews are not configured. Add MONGODB_URI to .env.local for MongoDB Atlas, or configure Supabase (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY).",
         );
         setReviews([]);
         return;

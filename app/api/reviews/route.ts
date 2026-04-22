@@ -1,25 +1,68 @@
 import { dbRowToStored, type ReviewDbRow } from "@/app/lib/review-db-mapper";
+import { connectMongoReviews, isMongoReviewsConfigured } from "@/app/lib/mongodb";
+import { getReviewModel } from "@/app/lib/review-mongoose-model";
 import { MAX_STORED_REVIEWS } from "@/app/lib/reviews-constants";
 import { checkReviewPostRateLimit, getClientIp } from "@/app/lib/review-rate-limit";
 import { validateReviewInput } from "@/app/lib/reviews-validation";
+import type { StoredReview } from "@/app/lib/reviews-validation";
 import { getSupabaseAdmin } from "@/app/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const REVIEWS_NOT_CONFIGURED =
+  "Reviews are not configured. Set MONGODB_URI (MongoDB Atlas), or set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for server-side routes.";
+
+function mongoLeanToStored(d: {
+  _id: unknown;
+  name: string;
+  comment: string;
+  rating: number;
+  createdAt: Date;
+}): StoredReview {
+  return {
+    id: String(d._id),
+    name: d.name,
+    message: d.comment,
+    stars: d.rating,
+    createdAt: new Date(d.createdAt).toISOString(),
+  };
+}
+
 export async function GET() {
+  if (isMongoReviewsConfigured()) {
+    try {
+      await connectMongoReviews();
+      const Review = getReviewModel();
+      const docs = await Review.find()
+        .sort({ createdAt: -1 })
+        .limit(MAX_STORED_REVIEWS)
+        .lean();
+
+      const reviews = docs.map((d) =>
+        mongoLeanToStored({
+          _id: d._id,
+          name: d.name,
+          comment: d.comment,
+          rating: d.rating,
+          createdAt: d.createdAt as Date,
+        }),
+      );
+      return Response.json({ reviews });
+    } catch (e) {
+      console.error("[reviews GET mongo]", e);
+      return Response.json({ error: "Could not load reviews." }, { status: 500 });
+    }
+  }
+
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return Response.json(
-      { error: "Reviews are not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY." },
-      { status: 503 },
-    );
+    return Response.json({ error: REVIEWS_NOT_CONFIGURED }, { status: 503 });
   }
 
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, name, message, stars, created_at, approved")
-    .eq("approved", true)
+    .select("id, name, review, rating, created_at")
     .order("created_at", { ascending: false })
     .limit(MAX_STORED_REVIEWS);
 
@@ -50,14 +93,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return Response.json(
-      { error: "Reviews are not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY." },
-      { status: 503 },
-    );
-  }
-
   const ip = getClientIp(request);
   const limited = checkReviewPostRateLimit(ip);
   if (!limited.ok) {
@@ -81,15 +116,42 @@ export async function POST(request: Request) {
 
   const { name, message, stars } = parsed.value;
 
+  if (isMongoReviewsConfigured()) {
+    try {
+      await connectMongoReviews();
+      const Review = getReviewModel();
+      const doc = await Review.create({
+        name,
+        comment: message,
+        rating: stars,
+      });
+      const review = mongoLeanToStored({
+        _id: doc._id,
+        name: doc.name,
+        comment: doc.comment,
+        rating: doc.rating,
+        createdAt: doc.createdAt,
+      });
+      return Response.json({ review }, { status: 201 });
+    } catch (e) {
+      console.error("[reviews POST mongo]", e);
+      return Response.json({ error: "Could not save your review." }, { status: 500 });
+    }
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return Response.json({ error: REVIEWS_NOT_CONFIGURED }, { status: 503 });
+  }
+
   const { data, error } = await supabase
     .from("reviews")
     .insert({
       name,
-      message,
-      stars,
-      approved: true,
+      review: message,
+      rating: stars,
     })
-    .select("id, name, message, stars, created_at, approved")
+    .select("id, name, review, rating, created_at")
     .single();
 
   if (error) {
